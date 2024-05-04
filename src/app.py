@@ -11,7 +11,6 @@ df = pd.read_csv('student_data.csv')
 
 # Create Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server  # For deployment
 
 # Get unique subjects, grades, and students from the data
 subjects = df['Subject'].unique()
@@ -20,7 +19,12 @@ students = df['StudentID'].unique()
 
 # Define layout
 app.layout = dbc.Container([
-    html.H1("Student Performance Dashboard", className='my-4 text-center'),
+    dbc.Row([
+        dbc.Col(
+            html.H1("Student Performance Dashboard", className='my-4 text-center'),
+            width=12
+        )
+    ]),
     dbc.Row([
         dbc.Col(
             dcc.Dropdown(
@@ -31,7 +35,8 @@ app.layout = dbc.Container([
                 searchable=True,
                 placeholder="Select a student"
             ),
-            width=3
+            width={'size': 10, 'offset': 1},
+            className='mb-3'
         ),
         dbc.Col(
             dcc.Dropdown(
@@ -41,7 +46,8 @@ app.layout = dbc.Container([
                 clearable=False,
                 placeholder="Select a grade"
             ),
-            width=3
+            width={'size': 10, 'offset': 1},
+            className='mb-3'
         ),
         dbc.Col(
             dcc.Dropdown(
@@ -51,32 +57,55 @@ app.layout = dbc.Container([
                 clearable=False,
                 placeholder="Select a subject"
             ),
-            width=3
+            width={'size': 10, 'offset': 1},
+            className='mb-3'
+        ),
+        dbc.Col(
+            dbc.Button(
+                "Toggle Dark Mode",
+                id="dark-mode-toggle",
+                color="dark",
+                outline=True,
+                className="ml-2",
+            ),
+            width={'size': 10, 'offset': 1},
+            className='mb-3'
         )
-    ], className='my-4'),
+    ]),
     dbc.Row([
         dbc.Col(
             dcc.Graph(id='performance-shift-graph', className='my-4'),
-            width=6
+            width={'size': 5, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='subject-performance-graph', className='my-4'),
-            width=6
+            width={'size': 5, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='comparison-graph', className='my-4'),
-            width=4
+            width={'size': 10, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='overall-comparison-graph', className='my-4'),
-            width=4
+            width={'size': 10, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='grade-comparison-graph', className='my-4'),
-            width=4
+            width={'size': 10, 'offset': 1}
         )
     ])
 ], fluid=True)
+
+# Define callback to toggle dark mode
+@app.callback(
+    Output('dark-mode-toggle', 'color'),
+    [Input('dark-mode-toggle', 'n_clicks')]
+)
+def toggle_dark_mode(n):
+    if n and n % 2 == 0:
+        return "dark"
+    else:
+        return "light"
 
 # Define callback to update graphs
 @app.callback(
@@ -136,4 +165,4 @@ def update_graph(selected_student, selected_grade, selected_subject):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run_server(debug=True, host='127.0.0.1', port=8050)
