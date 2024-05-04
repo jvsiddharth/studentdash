@@ -57,19 +57,23 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col(
             dcc.Graph(id='performance-shift-graph', className='my-4'),
-            width=3
+            width=6
         ),
         dbc.Col(
             dcc.Graph(id='subject-performance-graph', className='my-4'),
-            width=3
+            width=6
         ),
         dbc.Col(
             dcc.Graph(id='comparison-graph', className='my-4'),
-            width=3
+            width=4
         ),
         dbc.Col(
             dcc.Graph(id='overall-comparison-graph', className='my-4'),
-            width=3
+            width=4
+        ),
+        dbc.Col(
+            dcc.Graph(id='grade-comparison-graph', className='my-4'),
+            width=4
         )
     ])
 ], fluid=True)
@@ -79,14 +83,16 @@ app.layout = dbc.Container([
     [Output('performance-shift-graph', 'figure'),
      Output('subject-performance-graph', 'figure'),
      Output('comparison-graph', 'figure'),
-     Output('overall-comparison-graph', 'figure')],
+     Output('overall-comparison-graph', 'figure'),
+     Output('grade-comparison-graph', 'figure')],  # Added new Output
     [Input('student-dropdown', 'value'),
      Input('grade-dropdown', 'value'),
      Input('subject-dropdown', 'value')]
 )
+
 def update_graph(selected_student, selected_grade, selected_subject):
     if selected_student is None or selected_grade is None or selected_subject is None:
-        return {}, {}, {}, {}
+        return {}, {}, {}, {}, {}
 
     # Performance shift graph
     filtered_df = df[df['StudentID'] == selected_student]
@@ -117,7 +123,16 @@ def update_graph(selected_student, selected_grade, selected_subject):
     fig4.add_trace(go.Scatter(x=['Student', 'Class Average'], y=[student_avg_marks, class_avg_marks], mode='lines+markers', marker_color=['rgb(58,200,225)', 'rgb(100,145,230)']))
     fig4.update_layout(title=f'Overall Comparison: Student {selected_student} vs. Class Average (Grade {selected_grade})', xaxis_title='', yaxis_title='Average Marks')
 
-    return fig1, fig2, fig3, fig4
+    # Grade comparison graph
+    filtered_df = df[df['StudentID'] == selected_student]
+    fig5 = go.Figure()
+    for grade in grades:
+        grade_data = filtered_df[filtered_df['Grade'] == grade]
+        subject_data = grade_data[grade_data['Subject'] == selected_subject]
+        fig5.add_trace(go.Bar(x=[grade], y=subject_data['Marks'].values, name=f'Grade {grade}'))
+    fig5.update_layout(title=f'Grade Comparison for {selected_subject} (Student {selected_student})', xaxis_title='Grade', yaxis_title='Marks')
+    
+    return fig5, fig3, fig2, fig4, fig1
 
 # Run the app
 if __name__ == '__main__':
