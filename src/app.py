@@ -75,11 +75,11 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col(
             dcc.Graph(id='performance-shift-graph', className='my-4'),
-            width={'size': 5, 'offset': 1}
+            width={'size': 10, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='subject-performance-graph', className='my-4'),
-            width={'size': 5, 'offset': 1}
+            width={'size': 10, 'offset': 1}
         ),
         dbc.Col(
             dcc.Graph(id='comparison-graph', className='my-4'),
