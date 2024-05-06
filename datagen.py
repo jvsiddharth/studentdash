@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 
 # Define constants
-SUBJECTS = ['Math', 'Science', 'English', 'History']
+SUBJECTS = ['Math', 'Science', 'English', 'History', 'Hindi', 'Marathi']
 NUM_STUDENTS = 30
 NUM_GRADES = 5
-MIN_MARKS = 60
+MIN_MARKS = 30
 MAX_MARKS = 100
 
 # Set seed for reproducibility

@@ -84,7 +84,7 @@ def update_graph(selected_student, comparison_options):
         theta=categories,
         fill='toself',
         name=f'Student {selected_student}',
-        line=dict(color=colors[0], width=4, shape='spline', smoothing=0.3)
+        line=dict(color=colors[0], width=4, shape='spline', smoothing=0.5)
     ))
 
     # Comparisons
@@ -96,7 +96,7 @@ def update_graph(selected_student, comparison_options):
             theta=categories,
             fill='toself',
             name='Top Scorer',
-            line=dict(color=colors[1], width=4, shape='spline', smoothing=0.3)
+            line=dict(color=colors[1], width=4, shape='spline', smoothing=0.5)
         ))
 
     if 'bottom' in comparison_options:
@@ -107,7 +107,7 @@ def update_graph(selected_student, comparison_options):
             theta=categories,
             fill='toself',
             name='Bottom Scorer',
-            line=dict(color=colors[2], width=4, shape='spline', smoothing=0.3)
+            line=dict(color=colors[2], width=4, shape='spline', smoothing=0.5)
         ))
 
     fig1.update_layout(
