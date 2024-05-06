@@ -20,7 +20,7 @@ for subject in missing_subjects:
 app = dash.Dash(__name__)
 
 # Define color palette
-colors = ['#00876c', '#f44336', '#03a9f4']
+colors = ['#00876c', '#f44336', '#03a9f4', '#ff9800', '#9c27b0', '#795548']
 
 # Define layout
 app.layout = html.Div([
@@ -53,11 +53,11 @@ app.layout = html.Div([
             html.Div([
                 dcc.Graph(id='performance-shift-graph', className='graph'),
             ], className='graph-container'),
-        ], className='graphs'),
+        ], className='graphs', style={'display': 'flex', 'flexDirection': 'row'}),
         html.Div([
             dcc.Graph(id='subject-performance-graph', className='full-width-graph')
         ], className='bottom-graph-container')
-    ], className='container')
+    ], className='container', style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
 ], className='main-container')
 
 # Define callback to update graphs
@@ -68,6 +68,7 @@ app.layout = html.Div([
     [Input('student-dropdown', 'value'),
      Input('comparison-checklist', 'value')]
 )
+
 def update_graph(selected_student, comparison_options):
     if selected_student is None:
         return {}, {}, {}
@@ -84,7 +85,7 @@ def update_graph(selected_student, comparison_options):
         theta=categories,
         fill='toself',
         name=f'Student {selected_student}',
-        line=dict(color=colors[0], width=4, shape='spline', smoothing=0.3)
+        line=dict(color=colors[0], width=2, shape='spline', smoothing=0.3)  # Adjust smoothing for wave-like lines
     ))
 
     # Comparisons
