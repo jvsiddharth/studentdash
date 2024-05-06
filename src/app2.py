@@ -4,6 +4,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+import plotly.express as px
 
 # Load data from CSV file
 df = pd.read_csv('student_data.csv')
@@ -24,54 +25,47 @@ colors = ['#00876c', '#f44336', '#03a9f4', '#ff9800', '#9c27b0', '#795548']
 
 # Define layout
 app.layout = html.Div([
+    html.H1("Student Performance Dashboard", className='header'),
     html.Div([
-        html.H1("Student Performance Dashboard", className='header'),
-        html.Div([
-            dcc.Dropdown(
-                id='student-dropdown',
-                options=[{'label': f'Student {i}', 'value': i} for i in df['StudentID'].unique()],
-                value=df['StudentID'].unique()[0],
-                clearable=False,
-                placeholder="Select a student",
-                className='dropdown'
-            ),
-            dcc.Checklist(
-                id='comparison-checklist',
-                options=[
-                    {'label': 'Top Scorer', 'value': 'top'},
-                    {'label': 'Bottom Scorer', 'value': 'bottom'}
-                ],
-                value=[],
-                inline=True,
-                className='checklist'
-            ),
-        ], className='controls'),
-        html.Div([
-            html.Div([
-                dcc.Graph(id='performance-graph', className='graph'),
-            ], className='graph-container'),
-            html.Div([
-                dcc.Graph(id='performance-shift-graph', className='graph'),
-            ], className='graph-container'),
-        ], className='graphs', style={'display': 'flex', 'flexDirection': 'row'}),
-        html.Div([
-            dcc.Graph(id='subject-performance-graph', className='full-width-graph')
-        ], className='bottom-graph-container')
-    ], className='container', style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
-], className='main-container')
+        dcc.Dropdown(
+            id='student-dropdown',
+            options=[{'label': f'Student {i}', 'value': i} for i in df['StudentID'].unique()],
+            value=df['StudentID'].unique()[0],
+            clearable=False,
+            placeholder="Select a student",
+            className='dropdown'
+        ),
+        dcc.Checklist(
+            id='comparison-checklist',
+            options=[
+                {'label': 'Top Scorer', 'value': 'top'},
+                {'label': 'Bottom Scorer', 'value': 'bottom'}
+            ],
+            value=[],
+            inline=True,
+            className='checklist'
+        ),
+    ], className='controls'),
+    html.Div([
+        dcc.Graph(id='performance-graph', className='graph'),
+        dcc.Graph(id='performance-shift-graph', className='graph'),
+        dcc.Graph(id='subject-performance-graph', className='graph'),
+        dcc.Graph(id='average-comparison-graph', className='graph')
+    ], className='graphs')
+], className='container')
 
 # Define callback to update graphs
 @app.callback(
     [Output('performance-graph', 'figure'),
      Output('performance-shift-graph', 'figure'),
-     Output('subject-performance-graph', 'figure')],
+     Output('subject-performance-graph', 'figure'),
+     Output('average-comparison-graph', 'figure')],
     [Input('student-dropdown', 'value'),
      Input('comparison-checklist', 'value')]
 )
-
 def update_graph(selected_student, comparison_options):
     if selected_student is None:
-        return {}, {}, {}
+        return {}, {}, {}, {}
 
     # Overall performance across subjects
     student_marks = df[df['StudentID'] == selected_student].groupby('Subject')['Marks'].mean().reset_index()
@@ -85,7 +79,7 @@ def update_graph(selected_student, comparison_options):
         theta=categories,
         fill='toself',
         name=f'Student {selected_student}',
-        line=dict(color=colors[0], width=2, shape='spline', smoothing=0.3)  # Adjust smoothing for wave-like lines
+        line=dict(color=colors[0], width=2, shape='spline', smoothing=0.3)
     ))
 
     # Comparisons
@@ -136,16 +130,27 @@ def update_graph(selected_student, comparison_options):
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=student_performance['Grade'], y=student_performance['Marks'], mode='lines+markers', name=f'Student {selected_student}', line=dict(color=colors[0], shape='spline', smoothing=0.7)))
     fig2.update_layout(title='Year-on-Year Performance Shift', xaxis_title='Grade', yaxis_title='Average Marks', margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor='#FFFFFF', paper_bgcolor='#FFFFFF', font=dict(family='Roboto, sans-serif', color='#333333'))
+    fig2.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    fig2.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
 
     # Subject performance graph
     student_subject_performance = df[df['StudentID'] == selected_student].pivot(index='Grade', columns='Subject', values='Marks').reset_index()
     fig3 = go.Figure()
     for i, subject in enumerate(subjects):
-        color = colors[i % len(colors)]  # Cycling through available colors
+        color = colors[i % len(colors)] 
         fig3.add_trace(go.Scatter(x=student_subject_performance['Grade'], y=student_subject_performance[subject], mode='lines+markers', name=subject, line=dict(color=color, shape='spline', smoothing=0.7)))
     fig3.update_layout(title=f'Subject Performance for Student {selected_student}', xaxis_title='Grade', yaxis_title='Marks', margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor='#FFFFFF', paper_bgcolor='#FFFFFF', font=dict(family='Roboto, sans-serif', color='#333333'))
+    fig3.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    fig3.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
 
-    return fig1, fig2, fig3
+    # Class average vs. selected student average
+    class_avg = df.groupby('Grade')['Marks'].mean().reset_index()
+    student_avg = df[df['StudentID'] == selected_student].groupby('Grade')['Marks'].mean().reset_index()
+    fig4 = px.bar(x=class_avg['Grade'], y=[class_avg['Marks'], student_avg['Marks']], labels={'value': 'Average Marks', 'x': 'Grade'}, 
+                  color_discrete_sequence=[colors[3], colors[0]], title=f'Class Average vs. Student {selected_student} Average')
+    fig4.update_layout(xaxis=dict(categoryorder='category ascending'), plot_bgcolor='#FFFFFF', paper_bgcolor='#FFFFFF', font=dict(family='Roboto, sans-serif', color='#333333'))
+
+    return fig1, fig2, fig3, fig4
 
 # Run the app
 if __name__ == '__main__':
